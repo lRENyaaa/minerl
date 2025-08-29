@@ -134,51 +134,8 @@ def prep_mcp():
 
     # First, get MCP and patch it with our source.
     if os.name == 'nt':
-        # Windows is picky about this, too... If you have WSL, you have
-        # bash command, but an absolute path won't work. So lets instead
-        # use relative paths
-        old_dir = os.getcwd()
-        os.chdir(os.path.join(mydir, 'scripts'))
-
-        try:
-            setup_output = subprocess.check_output(['bash.exe', 'setup_mcp.sh']).decode(errors="ignore")
-            if "ERROR: JAVA_HOME" in setup_output:
-                raise RuntimeError(
-                    """
-                    `java` and/or `javac` commands were not found by the installation script.
-                    Make sure you have installed Java JDK 8.
-                    On Windows, if you installed WSL/WSL2, you may need to install JDK 8 in your WSL
-                    environment with `sudo apt update; sudo apt install openjdk-8-jdk`.
-                    """
-                )
-            elif "Cannot lock task history" in setup_output:
-                raise RuntimeError(
-                    """
-                    Installation failed probably due to Java processes dangling around from previous attempts.
-                    Try killing all Java processes in Windows and WSL (if you use it). Rebooting machine
-                    should also work.
-                    """
-                )
-            subprocess.check_call(['bash.exe', 'patch_mcp.sh'])
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(
-                """
-                Running install scripts failed. Check error logs above for more information.
-
-                If errors are about `bash` command not found, You have at least two options to fix this:
-                 1. Install Windows Subsystem for Linux (WSL. Tested on WSL 2). Note that installation with WSL
-                    may seem especially slow/stuck, but it is not; it is just a bit slow.
-                 2. Install bash along some other tools. E.g., git will come with bash: https://git-scm.com/downloads .
-                    After installation, you may have to update environment variables to include a path which contains
-                    'bash.exe'. For above git tools, this is [installation-dir]/bin.
-                After installation, you should have 'bash' command in your command line/powershell.
-
-                If errors are about "could not create work tree dir...", try cloning the MineRL repository
-                to a different location and try installation again.
-                """
-            )
-
-        os.chdir(old_dir)
+        subprocess.check_call([os.path.join(mydir, 'scripts', 'setup_mcp.bat')], shell=True)
+        subprocess.check_call([os.path.join(mydir, 'scripts', 'patch_mcp.bat')], shell=True)
     else:
         subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'setup_mcp.sh')])
         subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'patch_mcp.sh')])
