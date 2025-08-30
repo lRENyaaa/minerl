@@ -70,32 +70,6 @@ class BinaryDistribution(Distribution):
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-def unpack_assets():
-    asset_dir = None
-    # get value of $GRADLE_USER_HOME
-    gradle_user_home = os.environ.get('GRADLE_USER_HOME')
-    if gradle_user_home is not None:
-        # $GRADLE_USER_HOME exists:
-        asset_dir = os.path.join(gradle_user_home, 'caches', 'forge_gradle', 'assets')
-    else:
-        # using default path
-        asset_dir = os.path.join(os.path.expanduser('~'), '.gradle', 'caches', 'forge_gradle', 'assets')
-    output_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'minerl', 'MCP-Reborn', 'src', 'main', 'resources')
-    index = load_asset_index(os.path.join(asset_dir, 'indexes', '1.16.json'))
-    unpack_assets_impl(index, asset_dir, output_dir)
-
-def load_asset_index(index_file):
-    with open(index_file) as f:
-        return json.load(f)
-
-def unpack_assets_impl(index, asset_dir, output_dir):
-    for k, v in index['objects'].items():
-        asset_hash = v["hash"]
-        src = os.path.join(asset_dir, 'objects', asset_hash[:2], asset_hash)
-        dst = os.path.join(output_dir, k)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        shutil.copy(src, dst)
-
 class InstallPlatlib(install):
     def finalize_options(self):
         install.finalize_options(self)
@@ -129,41 +103,6 @@ class ShadowInplace(Command):
     def run(self):
         pass
 
-def prep_mcp():
-    mydir = os.path.abspath(os.path.dirname(__file__))
-
-    # First, get MCP and patch it with our source.
-    if os.name == 'nt':
-        subprocess.check_call([os.path.join(mydir, 'scripts', 'setup_mcp.bat')], shell=True)
-        subprocess.check_call([os.path.join(mydir, 'scripts', 'patch_mcp.bat')], shell=True)
-    else:
-        subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'setup_mcp.sh')])
-        subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'patch_mcp.sh')])
-
-    # Next, move onto building the MCP source
-    gradlew = 'gradlew.bat' if os.name == 'nt' else './gradlew'
-    workdir = os.path.join(mydir, 'minerl', 'MCP-Reborn')
-    if os.name == 'nt':
-        # Windows is picky about being in the right directory to run gradle
-        old_dir = os.getcwd()
-        os.chdir(workdir)
-    
-    # This may fail on the first try. Try few times
-    n_trials = 3
-    for i in range(n_trials):
-        try:
-            subprocess.check_call('{} downloadAssets'.format(gradlew).split(' '), cwd=workdir)
-        except subprocess.CalledProcessError as e:
-            if i == n_trials - 1:
-                raise e
-        else:
-            break
-
-    unpack_assets()
-    subprocess.check_call('{} clean build shadowJar'.format(gradlew).split(' '), cwd=workdir)
-    if os.name == 'nt':
-        os.chdir(old_dir)
-
 # Don't build binaries (requires Java) on readthedocs.io server.
 if os.environ.get("READTHEDOCS"):
     print("READTHEDOCS env var is set; performing partial package install only.")
@@ -176,7 +115,6 @@ else:
         'build_malmo': CustomBuild,
         'shadow_develop': ShadowInplace,
     }
-    prep_mcp()
 
 setuptools.setup(
     name='minerl',

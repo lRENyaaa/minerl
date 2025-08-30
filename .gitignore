@@ -247,32 +247,12 @@ tests/logs/
 .vscode/settings.json
 */performance
 
-
-
 build/
-minerl/MCP-Reborn/src/main/resources/*
 
 *.iws
 *.swp
 *.ipr
 *.tar.bz2
-
-
-
-#Run files
-# runclient
-minerl/MCP-Reborn/*
-minerl/MCP-Reborn/world/*
-minerl/MCP-Reborn/crash-reports/*
-minerl/MCP-Reborn/recordings/*
-minerl/MCP-Reborn/saves/*
-minerl/MCP-Reborn/logs/*
-minerl/MCP-Reborn/.classpath
-minerl/MCP-Reborn/.settings
-minerl/MCP-Reborn/.project
-minerl/MCP-Reborn/projects
-minerl/MCP-Reborn/bin
-minerl/MCP-Reborn/src/main/java/com/microsoft/Malmo/Schemas
 
 
 # Ignore Gradle GUI config
@@ -291,5 +271,3 @@ out/
 
 # Gradle
 .gradle
-!minerl/MCP-Reborn/gradle/wrapper/gradle-wrapper.jar
-minerl/MCP-Reborn/usercache.json

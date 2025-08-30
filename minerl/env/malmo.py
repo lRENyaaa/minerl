@@ -454,6 +454,9 @@ class MinecraftInstance(object):
                 lines.append(line)
                 self._log_heuristic("\n".join(line.split("\n")[:-1]))
 
+                if line.strip():
+                    print(line.strip())
+
                 MALMOENVPORTSTR = "***** Start MalmoEnvServer on port "
                 port_received = MALMOENVPORTSTR in line
                 if port_received:
@@ -518,6 +521,11 @@ class MinecraftInstance(object):
             self._logger_thread.daemon = True
             self._logger_thread.start()
 
+            threading.Thread(
+                target=lambda: [print("[MalmoProxy]", l.decode(locale.getpreferredencoding(False), errors="replace").rstrip())
+                                for l in iter(self.minecraft_process.stdout.readline, b'')],
+                daemon=True
+            ).start()
 
         else:
             assert port is not None, "No existing port specified."
