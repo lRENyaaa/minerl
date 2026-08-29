@@ -140,6 +140,10 @@ def prep_mcp():
         subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'setup_mcp.sh')])
         subprocess.check_call(['bash', os.path.join(mydir, 'scripts', 'patch_mcp.sh')])
 
+    env = os.environ.copy()
+    env['JAVA_HOME'] = r'C:\Program Files\Zulu\zulu-8'
+    env['GRADLE_OPTS'] = '-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=10809 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=10809'
+
     # Next, move onto building the MCP source
     gradlew = 'gradlew.bat' if os.name == 'nt' else './gradlew'
     workdir = os.path.join(mydir, 'minerl', 'MCP-Reborn')
@@ -152,7 +156,7 @@ def prep_mcp():
     n_trials = 3
     for i in range(n_trials):
         try:
-            subprocess.check_call('{} downloadAssets'.format(gradlew).split(' '), cwd=workdir)
+            subprocess.check_call('{} downloadAssets'.format(gradlew).split(' '), cwd=workdir, env=env)
         except subprocess.CalledProcessError as e:
             if i == n_trials - 1:
                 raise e
@@ -160,7 +164,7 @@ def prep_mcp():
             break
 
     unpack_assets()
-    subprocess.check_call('{} clean build shadowJar'.format(gradlew).split(' '), cwd=workdir)
+    subprocess.check_call('{} clean build shadowJar'.format(gradlew).split(' '), cwd=workdir, env=env)
     if os.name == 'nt':
         os.chdir(old_dir)
 
